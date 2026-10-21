@@ -2,13 +2,15 @@ from collections import Counter
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 import os
+import csv
+from io import StringIO
 from pathlib import Path
 import time
 from uuid import uuid4
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field
 import numpy as np
@@ -139,6 +141,31 @@ def create_app(db_path=None, static_dir=None):
                 'recent':[{'id':e['id'],'time':iso(e['created']),'status':e['status'],
                     'label':e['label'],'probability':e['probability'],'latency_ms':e['latency'],
                     'source':e['source']} for e in events[:15]]}
+
+    @app.get('/api/export/metrics.json')
+    def export_metrics():
+        return JSONResponse(
+            content={'exported_at': iso(time.time()), 'model': model(), 'metrics': metrics()},
+            headers={'Content-Disposition': 'attachment; filename="modelscope-metrics.json"',
+                     'Cache-Control': 'no-store'})
+
+    @app.get('/api/export/events.csv')
+    def export_events():
+        # Same bounded 24-hour window as metrics, newest first. No new events.
+        output = StringIO(newline='')
+        fields = ['id', 'time', 'status', 'latency_ms', 'latency_kind',
+                  'label', 'probability', 'source']
+        writer = csv.DictWriter(output, fieldnames=fields)
+        writer.writeheader()
+        for event in app.state.store.recent():
+            writer.writerow({'id': event['id'], 'time': iso(event['created']),
+                'status': event['status'], 'latency_ms': event['latency'],
+                'latency_kind': 'inference' if event['status'] == 200 else 'failure_processing',
+                'label': event['label'], 'probability': event['probability'],
+                'source': event['source']})
+        return Response(output.getvalue(), media_type='text/csv',
+            headers={'Content-Disposition': 'attachment; filename="modelscope-events.csv"',
+                     'Cache-Control': 'no-store'})
 
     directory = Path(static_dir or os.getenv('STATIC_DIR', '../frontend/dist'))
     if directory.is_dir():
