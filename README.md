@@ -161,3 +161,14 @@ Up to 10,000 events are retained. Inputs and prediction outputs are stored for t
 - [Iris dataset documentation](https://scikit-learn.org/stable/modules/generated/sklearn.datasets.load_iris.html)
 - [Vite documentation](https://vite.dev/guide/)
 - [Recharts](https://recharts.org/)
+
+## Download monitoring reports
+
+With the backend running, open:
+
+- `http://localhost:8000/api/export/metrics.json` for a timestamped snapshot of model metadata and monitoring metrics.
+- `http://localhost:8000/api/export/events.csv` for events in the same latest-1,000 / 24-hour window, newest first.
+
+Both endpoints return downloadable attachments and `Cache-Control: no-store`. Downloads do not create prediction events. CSV includes request IDs, UTC timestamps, status, latency, predicted class/probability and the original user/demo source. Failed requests have empty prediction fields and `failure_processing` latency; successful rows use `inference` latency. Raw input features are not included. Each download is a separate snapshot, so concurrent traffic can change the counts between files.
+
+Exports use the existing local-only access model; no authentication or public deployment is introduced. Three additional backend tests cover empty attachments, success/error/demo provenance, unchanged request counts and expired-event exclusion. No dashboard button has been added; use these URLs or `/docs`.
