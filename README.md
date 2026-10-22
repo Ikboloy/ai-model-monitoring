@@ -1,5 +1,15 @@
 # ModelScope — AI Model Monitoring Dashboard
 
+[![ModelScope checks](https://github.com/Ikboloy/ai-model-monitoring/actions/workflows/checks.yml/badge.svg?branch=main)](https://github.com/Ikboloy/ai-model-monitoring/actions/workflows/checks.yml)
+
+**Purpose:** make prediction traffic, latency, validation failures and input drift visible for a running ML service.
+
+![ModelScope browser adaptation before authentication](docs/screenshots/browser-preview.jpg)
+
+*Screenshot: local preview of the separately hosted React/Worker adaptation before authentication. Empty metrics and the sign-in notice are intentional; this image is not a successful inference run. The repository below uses FastAPI and SQLite, while the owner-private adaptation uses a Worker and per-user storage. Run the local version below to reproduce model results without a hosted account.*
+
+**Start here:** [Docker](#quick-start-with-docker) · [Local development](#local-development) · [Results](#architecture) · [Reports](#download-monitoring-reports)
+
 A practical **AI / MLOps portfolio project** by **Sobirova Ikboloy**, Computer Engineering graduate of Keimyung University.
 
 ModelScope serves an actual machine-learning model and records its prediction attempts. A React dashboard shows request activity, inference latency, API errors, predicted-class distribution and feature drift. Every displayed monitoring metric is computed from recorded events; demo requests are explicitly tagged.
@@ -126,15 +136,15 @@ cd backend
 python -m unittest discover -s tests -v
 ```
 
-Eight tests cover prediction provenance, validation errors, inference failures, empty metrics, bounded/tagged demo traffic, persistence, the 24-hour window and drift behavior. No external service is needed.
+Eleven tests cover prediction provenance, validation errors, inference failures, empty metrics, bounded/tagged demo traffic, persistence, the 24-hour window and drift behavior. No external service is needed.
 
 Verified during development:
 
-- Eight backend tests passed.
+- Eleven backend tests passed (including three export tests).
 - React production build passed.
 - Built dashboard was served successfully through FastAPI using TestClient.
 
-Docker could not be executed in the development environment, so the container build is not yet verified. Browser interaction and public-host deployment have not been verified. The CI workflow checks backend tests and frontend build; it does not test Docker or a live deployment.
+Docker could not be executed in the development environment, so the container build is not yet verified. The separately hosted UI has a visual preview above; end-to-end browser interaction for this Python/React checkout and a public deployment of this source have not been verified. The CI workflow checks backend tests and frontend build; it does not test Docker or a live deployment.
 
 ## Configuration
 
